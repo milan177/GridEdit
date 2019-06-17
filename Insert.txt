@@ -1,0 +1,82 @@
+CREATE PROCEDURE [dbo].[STP_InsertUpdateEmpDetails]
+(
+	@EmpID int out,
+	@EmpName VARCHAR (200),
+	@EmpAddress VARCHAR (200),
+	@EmpMobile VARCHAR (200),
+	@EmpEmail VARCHAR (20),
+	@CRUDAction varchar(1),
+	@ErrorCode varchar(10) out
+)
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+	DECLARE @ErrorMessage VARCHAR(MAX),@ErrorProcedure VARCHAR(255),@ErrorSeverity INT,@ErrorState INT
+	BEGIN TRY
+		IF(isnull(@CRUDAction,'') = 'C')
+		BEGIN
+			INSERT 
+			INTO	EmpDetails
+					(EmpName,EmpAddress,EmpMobile,EmpEmail)
+			VALUES	(@EmpName,@EmpAddress,@EmpMobile,@EmpEmail)
+			SELECT	@EmpID = SCOPE_IDENTITY(), @ErrorCode = '000'
+		END
+		ELSE IF(isnull(@CRUDAction,'') = 'U')
+		BEGIN
+			UPDATE	EmpDetails
+			SET		
+					EmpName = @EmpName,
+					EmpAddress = @EmpAddress,
+					EmpMobile = @EmpMobile,
+					EmpEmail = @EmpEmail
+			WHERE	EmpID = @EmpID
+			SET		@ErrorCode = '000'
+		END
+		ELSE IF(isnull(@CRUDAction,'') = 'D')
+		BEGIN
+			delete from EmpDetails
+			WHERE	EmpID = @EmpID
+			SET		@ErrorCode = 'D000'
+		END
+	END TRY
+	BEGIN CATCH
+		SELECT  @ErrorSeverity		= ERROR_SEVERITY()
+				,@ErrorState		= ERROR_STATE(),@ErrorCode = '999'
+		SET @ErrorMessage = 'Procedure: ' + ERROR_PROCEDURE() + space(1) + 
+		ERROR_MESSAGE() + ' Line: ' + CONVERT(VARCHAR(20),ERROR_LINE())
+		RAISERROR ( @ErrorMessage, @ErrorSeverity, @ErrorState)
+	END CATCH
+END
+------------------------------
+CREATE PROCEDURE [dbo].[GetEmployeeDetailsByID]
+
+      @EmpID int = 0
+
+AS
+
+BEGIN
+
+      SET NOCOUNT ON;
+
+      SELECT EmpName, EmpAddress, EmpMobile, EmpEmail, EmpID
+
+      FROM EmpDetails WHERE EmpID=@EmpID
+
+END
+-----------------------
+CREATE PROCEDURE [dbo].[GetEmployeeDetails]
+
+  
+
+AS
+
+BEGIN
+
+      SET NOCOUNT ON;
+
+      SELECT EmpName, EmpAddress, EmpMobile, EmpEmail, EmpID
+
+      FROM EmpDetails WHERE 1=1
+
+END
